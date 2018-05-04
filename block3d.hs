@@ -30,10 +30,8 @@ placePoint :: [Char] -> Char -> Int -> [Char]
 placePoint line point x = if line !! x /= ' ' then line else
     take x line ++ [point] ++ drop (x + 1) line
 
---canPlaceShape :: [[Char]] -> [[Char]] -> Int -> Int -> Bool
-canPlaceShape :: [[Char]] -> [[Char]] -> Int -> Int -> [Bool]
---canPlaceShape b g x y =  x + w < length (head g) && y + h < length g && allEmpty
-canPlaceShape b g x y = allEmpty
+canPlaceShape :: [[Char]] -> [[Char]] -> Int -> Int -> Bool
+canPlaceShape b g x y =  x + w <= length (head g) && y + h <= length g && allEmpty
     where h = length b
           w = length $ head b
           ysection = take h $ drop y g
@@ -41,14 +39,13 @@ canPlaceShape b g x y = allEmpty
           flatSection = concat section
           flatShape = concat b
           filteredSection = [fst a | a <- zip flatSection flatShape, snd a /= ' ']
-          allEmpty = [l == ' ' | l <- filteredSection]
+          allEmpty = and [l == ' ' | l <- filteredSection]
 
---canPlaceBlock :: [[[Char]]] -> [[[Char]]] -> Int -> Int -> Int -> Bool
-canPlaceBlock :: Block -> Grid -> Int -> Int -> Int -> [[Bool]]
+canPlaceBlock :: Block -> Grid -> Int -> Int -> Int -> Bool
 canPlaceBlock block grid x y z = 
---    x + w < length (head (head g)) && 
---    y + h < length (head g) && 
---    z + d < length g &&
+    x + w <= length (head (head g)) && 
+    y + h <= length (head g) && 
+    z + d <= length g &&
     allEmpty
         where
             b = bContents block
@@ -57,11 +54,17 @@ canPlaceBlock block grid x y z =
             h = length $ head b
             d = length b
             layers = [canPlaceShape (fst a) (snd a) x y| a <- zip b g]
-            allEmpty = layers
+            allEmpty = and layers
 
-placeBlock :: Block -> Grid -> Int -> Int -> Int -> Grid
-placeBlock b g x y z = Grid newcontents
-    where newcontents = [["kek"]]
+placeBlock :: Block -> Grid -> Int -> Int -> Int -> Maybe Grid
+placeBlock block grid x y z = if canPlaceBlock b g x y z then Just newGrid else Nothing
+    where newGrid = Grid [["kek"]]
+          b = bContents block
+          g = gContents grid
+          w = length $ head $ head b
+          h = length $ head b
+          d = length b
+          
 
 -- All building blocks --
 bZ = Block [["ZZ ", " ZZ"]]
