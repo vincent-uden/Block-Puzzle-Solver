@@ -16,8 +16,8 @@ data Grid = Grid [[[Char]]]
     deriving(Eq)
 
 instance Show Grid where
-    show (Grid xs) = tail $ foldr make2d "" xs
-       where make2d = (\x acc -> acc ++ "\n" ++ (intercalate "\n" x))
+    show (Grid xs) = foldr make2d "" xs
+        where make2d = (\x acc -> acc ++ "\n" ++ (intercalate "\n" ["#" ++ y ++ "#" | y <- x]))
 
 gContents :: Grid -> [[[Char]]]
 gContents (Grid xs) = xs
@@ -57,14 +57,32 @@ canPlaceBlock block grid x y z =
             allEmpty = and layers
 
 placeBlock :: Block -> Grid -> Int -> Int -> Int -> Maybe Grid
-placeBlock block grid x y z = if canPlaceBlock b g x y z then Just newGrid else Nothing
-    where newGrid = Grid [["kek"]]
-          b = bContents block
+placeBlock block grid x y z = if canPlaceBlock block grid x y z 
+                              then Just newGrid 
+                              else Nothing
+    where b = bContents block
           g = gContents grid
           w = length $ head $ head b
           h = length $ head b
           d = length b
-          
+          affectedPlanes = take d $ drop z g
+          newGrid = Grid affectedPlanes
+
+overWriteGrid :: [[[Char]]] -> [[[Char]]] -> Int -> Int -> Int -> ([Char], [Char])
+overWriteGrid b g x y z = newGrid
+    where 
+        gw = length $ head $ head g
+        gh = length $ head g
+        gd = length g
+        w = length $ head $ head b
+        h = length $ head b
+        d = length b
+        padd = (\xs l -> xs ++ [' ' | y <- [1.. l - length xs]])
+        paddY = (\lx ly xss -> xss ++ [padd "" lx | i <- [1..ly - length xss]])
+        paddZ = (\lx ly lz xsss -> -- TODO: ix this shit
+        flatG = concat $ concat $ g
+        flatB = concat $ concat $ map (paddY gw gh) [[padd row (gw) | row <- plane] | plane <- b]
+        newGrid = (flatG, flatB)
 
 -- All building blocks --
 bZ = Block [["ZZ ", " ZZ"]]
@@ -77,4 +95,7 @@ bv = Block [["v ", "vv"]]
 
 testGrid = createGrid 3 3 3 ' '
 testShape = head $ bContents bZ
-testLattice = ["   ", "   ", "   "]
+testLattice = ["  x", "x  ", " x "]
+testGrid2 = Grid [testLattice, testLattice, testLattice]
+testShape2 = bContents bZ
+testLattice2 = [testLattice, testLattice, testLattice]
