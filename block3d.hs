@@ -30,8 +30,10 @@ placePoint :: [Char] -> Char -> Int -> [Char]
 placePoint line point x = if line !! x /= ' ' then line else
     take x line ++ [point] ++ drop (x + 1) line
 
-canPlaceShape :: [[Char]] -> [[Char]] -> Int -> Int -> Bool
-canPlaceShape b g x y =  x + w < length (head g) && y + h < length g && allEmpty
+--canPlaceShape :: [[Char]] -> [[Char]] -> Int -> Int -> Bool
+canPlaceShape :: [[Char]] -> [[Char]] -> Int -> Int -> [Bool]
+--canPlaceShape b g x y =  x + w < length (head g) && y + h < length g && allEmpty
+canPlaceShape b g x y = allEmpty
     where h = length b
           w = length $ head b
           ysection = take h $ drop y g
@@ -39,10 +41,10 @@ canPlaceShape b g x y =  x + w < length (head g) && y + h < length g && allEmpty
           flatSection = concat section
           flatShape = concat b
           filteredSection = [fst a | a <- zip flatSection flatShape, snd a /= ' ']
-          allEmpty = and [l == ' ' | l <- filteredSection]
+          allEmpty = [l == ' ' | l <- filteredSection]
 
 --canPlaceBlock :: [[[Char]]] -> [[[Char]]] -> Int -> Int -> Int -> Bool
-canPlaceBlock :: Block -> Grid -> Int -> Int -> Int -> (Int, Int, Int)
+canPlaceBlock :: Block -> Grid -> Int -> Int -> Int -> [[Bool]]
 canPlaceBlock block grid x y z = 
 --    x + w < length (head (head g)) && 
 --    y + h < length (head g) && 
@@ -50,11 +52,12 @@ canPlaceBlock block grid x y z =
     allEmpty
         where
             b = bContents block
-            g = gContents
+            g = gContents grid
             w = length $ head $ head b
             h = length $ head b
             d = length b
-            allEmpty = (w, h, d)
+            layers = [canPlaceShape (fst a) (snd a) x y| a <- zip b g]
+            allEmpty = layers
 
 placeBlock :: Block -> Grid -> Int -> Int -> Int -> Grid
 placeBlock b g x y z = Grid newcontents
@@ -70,3 +73,5 @@ bg = Block [["gg", " g"], ["g ", "  "]]
 bv = Block [["v ", "vv"]]
 
 testGrid = createGrid 3 3 3 ' '
+testShape = head $ bContents bZ
+testLattice = ["   ", "   ", "   "]
