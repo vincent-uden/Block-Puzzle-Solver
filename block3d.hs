@@ -6,7 +6,7 @@ data Block = Block [[[Char]]]
 
 instance Show Block where
     show (Block xs) = tail $ foldr make2d "" xs
-       where make2d = (\x acc -> acc ++ "\n" ++ (intercalate "\n" x))
+        where make2d = (\x acc -> "\n" ++ (intercalate "\n" x) ++ acc)
 
 bContents :: Block -> [[[Char]]]
 bContents (Block xs) = xs
@@ -17,7 +17,7 @@ data Grid = Grid [[[Char]]]
 
 instance Show Grid where
     show (Grid xs) = foldr make2d "" xs
-        where make2d = (\x acc -> acc ++ "\n" ++ (intercalate "\n" ["#" ++ y ++ "#" | y <- x]))
+        where make2d = (\x acc -> "\n" ++ (intercalate "\n" ["#" ++ y ++ "#" | y <- x]) ++ acc)
 
 gContents :: Grid -> [[[Char]]]
 gContents (Grid xs) = xs
@@ -66,9 +66,9 @@ placeBlock block grid x y z = if canPlaceBlock block grid x y z
           h = length $ head b
           d = length b
           affectedPlanes = take d $ drop z g
-          newGrid = Grid affectedPlanes
+          newGrid = Grid $ overWriteGrid b g x y z
 
-overWriteGrid :: [[[Char]]] -> [[[Char]]] -> Int -> Int -> Int -> ([Char], [Char])
+overWriteGrid :: [[[Char]]] -> [[[Char]]] -> Int -> Int -> Int -> [[[Char]]]
 overWriteGrid b g x y z = newGrid
     where 
         gw = length $ head $ head g
@@ -79,10 +79,24 @@ overWriteGrid b g x y z = newGrid
         d = length b
         padd = (\xs l -> xs ++ [' ' | y <- [1.. l - length xs]])
         paddY = (\lx ly xss -> xss ++ [padd "" lx | i <- [1..ly - length xss]])
-        paddZ = (\lx ly lz xsss -> -- TODO: ix this shit
+        paddZ = (\lx ly lz xss -> xss ++ [paddY lx ly [] | i <- [1..ly - length xss]])
         flatG = concat $ concat $ g
-        flatB = concat $ concat $ map (paddY gw gh) [[padd row (gw) | row <- plane] | plane <- b]
-        newGrid = (flatG, flatB)
+        flatB = concat $ concat $ paddZ gw gh gd $ map (paddY gw gh) [[padd row (gw) | row <- plane] | plane <- b]
+        strRot = (\l offset -> take (length l) $ drop (offset `mod` (length l)) $ cycle l)
+        -- Rotate to take x y z offset into account
+        rottedB = strRot flatB ((-1) * (x + y * gw + z * gw * gh))
+        newFlat = foldr (\pair acc -> if snd pair /= ' ' then (snd pair):acc else (fst pair):acc) "" (zip flatG rottedB)
+        newGrid = arrWrapper newFlat gw gh
+
+construct2dArr :: [Char] -> Int -> [[Char]]
+construct2dArr "" _ = []
+construct2dArr g w = (take w g):(construct2dArr (drop w g) w)
+
+construct3dArr :: [[Char]] -> Int -> Int -> [[[Char]]]
+construct3dArr [] _ _ = []
+construct3dArr g w h = (take h g):(construct3dArr (drop h g) w h)
+
+arrWrapper g w h = construct3dArr (construct2dArr g w) w h
 
 -- All building blocks --
 bZ = Block [["ZZ ", " ZZ"]]
