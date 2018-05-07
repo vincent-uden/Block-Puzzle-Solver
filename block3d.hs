@@ -53,8 +53,7 @@ canPlaceShape b g x y =  x + w <= length (head g) && y + h <= length g && allEmp
           filteredSection = [fst a | a <- zip flatSection flatShape, snd a /= ' ']
           allEmpty = and [l == ' ' | l <- filteredSection]
 
-
-canPlaceBlock :: Block -> Grid -> Int -> Int -> Int -> Bool
+canPlaceBlock :: Block -> Grid -> Int -> Int -> Int -> Bool 
 canPlaceBlock block grid x y z = 
     x + w <= length (head (head g)) && 
     y + h <= length (head g) && 
@@ -66,7 +65,12 @@ canPlaceBlock block grid x y z =
             w = length $ head $ head b
             h = length $ head b
             d = length b
-            layers = [canPlaceShape (fst a) (snd a) x y| a <- zip b g]
+            gw = length $ head $ head g
+            gh = length $ head g
+            gd = length g
+            padded = paddZ gw gh gd [[""]]
+            paddedB = take z padded ++ b ++ drop (z + d) padded
+            layers = [canPlaceShape bLayer gLayer x y| (bLayer, gLayer) <- zip paddedB g]
             allEmpty = and layers
 
 placeBlock :: Block -> Grid -> Int -> Int -> Int -> Maybe Grid
@@ -145,7 +149,8 @@ depthFirst blocks inpGrid = allGrids
         maybeGrids = filter (/=Nothing) placements
         actualGrids = map maybeExtract maybeGrids
         newGrids = map (depthFirst (tail blocks)) actualGrids
-        allGrids = foldr (\acc item -> item ++ [Grid [["qq", "qq"], ["qq", "qq"], ["qq", "qq"]]] ++ acc) [] newGrids
+        --allGrids = foldr (\acc item -> item ++ [Grid [["qq", "qq"], ["qq", "qq"], ["qq", "qq"]]] ++ acc) [] newGrids
+        allGrids = concat newGrids
 
 -- All building blocks --
 bZ = Block [["ZZ ", " ZZ"]]
@@ -177,23 +182,5 @@ canPlaceShapeP b g x y = allEmpty
 
 
 
-canPlaceBlockP :: Block -> Grid -> Int -> Int -> Int -> [Bool] 
-canPlaceBlockP block grid x y z = 
---    x + w <= length (head (head g)) && 
---    y + h <= length (head g) && 
---    z + d <= length g &&
-    allEmpty
-        where
-            b = bContents block
-            g = gContents grid
-            w = length $ head $ head b
-            h = length $ head b
-            d = length b
-            gw = length $ head $ head g
-            gh = length $ head g
-            gd = length g
-            paddedB = paddZ gw gh gd b
-            layers = [canPlaceShape bLayer gLayer x y| (bLayer, gLayer) <- zip paddedB g]
-            allEmpty = layers
 problem1 = placeBlock bv testGrid 0 0 1
-problem = canPlaceBlockP bV (maybeExtract (  placeBlock bv testGrid 0 0 1) )0 0 1
+--problem = canPlaceBlockP bg (maybeExtract (  placeBlock bv testGrid 0 0 1) )0 0 1
