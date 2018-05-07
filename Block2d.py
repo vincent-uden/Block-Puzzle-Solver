@@ -1,10 +1,12 @@
 from copy import copy
 
 class Grid:
-    def __init__(self, w, h):
+    def __init __(self, w, h, grd=None):
         self.grid = [[str(0) for x in range(w)] for y in range(h)]
         self.w = w
         self.h = h
+        if grd != None:
+            self.grid = grd
 
     def __str__(self):
         output = ""
@@ -137,6 +139,29 @@ def put_block(grid, block):
                 except:
                     pass
 
+def brute_force(grid, blocks, start=0):
+    if start >= len(blocks):
+        return []
+    my_block = copy(blocks[start])
+    solutions = []
+    for r in range(0, 4):
+        for y in range(grid.h - my_block.h + 1):
+            for x in range(grid.w - my_block.w + 1):
+                try:
+                    my_block.rotate(r)
+                    print("_______")
+                    print(f"X:{x} Y:{y}")
+                    print(my_block)
+                    grid.place(my_block.get_shape(), x, y)
+                    solutions += brute_force(Grid(grid.w, grid.h, grd=grid.grid_copy()), blocks, start + 1)
+                    # Returnera alla följande lösningar
+                    return
+                except:
+                    pass
+
+or r in range(0, 4):
+        for y in range(
+
 grid = Grid(4, 4)
 blocks = block_set1()
 for block in blocks:
@@ -146,4 +171,4 @@ put_block(grid, blocks[1])
 put_block(grid, blocks[2])
 put_block(grid, blocks[3])
 
-#print(grid)
+print(grid)
