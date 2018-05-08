@@ -183,6 +183,18 @@ bi = Block [["ii"]]
 bL = Block [["L  ", "LLL"]]
 bI = Block [["IIII"]]
 
+-- New Building Blocks --
+dL = Block [["L  ", "LLL"]]
+dX = Block [["X ", "  "], ["X ", "XX"]]
+dT = Block [["TTT", " T "]]
+dx = Block [["X ", "  "], ["XX", " X"]]
+dv = Block [["v ", "vv"]]
+ds = Block [[" ss", "ss "]]
+dw = Block [["w ", "  "], ["ww", "w "]]
+
+blockSet1 = [dL, dX, dT, dx, dv, ds, dw]
+blockSet2 = [(Block [["x"]]) | n <- [1..27]]
+grid1 = createGrid 3 3 3 ' '
 -- Try to fill this grid with 2 x bv, 1 x bi
 -- Answer will be [["vV", "vv"], ["VV", "ii"]]
 testGrid0 = createGrid 2 2 2 ' '
