@@ -136,6 +136,15 @@ rotate3dArr arr axis r = case axis of
         'y' -> rotateY arr r -- Rotates cube clockwise as seen from above
         'z' -> rotateZ arr r
 
+rots3D :: [[[Char]]] -> [[[[Char]]]]
+rots3D t = concat $ concat $ [[[rotateZ (rotateY (rotateX t x) y) z | x <- [0..3]] | y <- [0..3]] | z <- [0..3]]
+
+rots3DBlock :: Block -> [Block]
+rots3DBlock = (map Block) . rots3D . bContents
+
+rots3DGrid :: Grid -> [Grid]
+rots3DGrid = (map Grid) . rots3D . gContents
+
 depthFirst :: [Block] -> Grid -> [Grid]
 --depthFirst :: [Block] -> Grid -> Int
 depthFirst [] inpGrid = [inpGrid]
@@ -143,7 +152,7 @@ depthFirst blocks inpGrid = allGrids
     where
         bs = [bContents b | b <- blocks]
         rotations = (\b -> map Block (concat $ concat $ [[[rotateZ (rotateY (rotateX b x) y) z | x <- [0..3]] | y <- [0..3]] | z <- [0..3]]))
-        allRots = nub $ rotations $ head bs
+        allRots = nub $ rots3DBlock $ head blocks
         (dx, dy, dz) = dims inpGrid
         placements = concat $ concat $ concat $ [[[[placeBlock rot inpGrid x y z | x <- [0..(dx - 1)]] | y <- [0..(dy - 1)]] | z <- [0..(dz - 1)]] | rot <- allRots]
         maybeGrids = filter (/=Nothing) placements
@@ -151,6 +160,15 @@ depthFirst blocks inpGrid = allGrids
         newGrids = map (depthFirst (tail blocks)) actualGrids
         --allGrids = foldr (\acc item -> item ++ [Grid [["qq", "qq"], ["qq", "qq"], ["qq", "qq"]]] ++ acc) [] newGrids
         allGrids = concat newGrids
+
+filterRotations :: [Grid] -> [Grid]
+filterRotations [] = []
+filterRotations (g:gs) = g:filteredRest
+    where
+        rotations = rots3DGrid g
+        filtered = filter (`notElem` rotations) gs
+        filteredRest = filterRotations gs
+
 
 -- All building blocks --
 bZ = Block [["ZZ ", " ZZ"]]
@@ -162,10 +180,15 @@ bg = Block [["gg", " g"], ["g ", "  "]]
 bv = Block [["v ", "vv"]]
 bV = Block [["V ", "VV"]]
 bi = Block [["ii"]]
+bL = Block [["L  ", "LLL"]]
+bI = Block [["IIII"]]
 
 -- Try to fill this grid with 2 x bv, 1 x bi
 -- Answer will be [["vV", "vv"], ["VV", "ii"]]
-testGrid = createGrid 2 2 2 ' '
+testGrid0 = createGrid 2 2 2 ' '
+testGrid1 = createGrid 4 4 1 ' '
+testBlockSet0 = [bV, bv, bi]
+testBlockSet1 = [bT, bt, bL, bI]
 
 tes = head $ bContents bZ
 --x + w <= length (head g) && y + h <= length g &&
@@ -182,5 +205,3 @@ canPlaceShapeP b g x y = allEmpty
 
 
 
-problem1 = placeBlock bv testGrid 0 0 1
---problem = canPlaceBlockP bg (maybeExtract (  placeBlock bv testGrid 0 0 1) )0 0 1
