@@ -68,7 +68,7 @@ canPlaceBlock block grid x y z =
             gw = length $ head $ head g
             gh = length $ head g
             gd = length g
-            padded = paddZ gw gh gd [[""]]
+            padded = paddZ w h gd [[""]]
             paddedB = take z padded ++ b ++ drop (z + d) padded
             layers = [canPlaceShape bLayer gLayer x y| (bLayer, gLayer) <- zip paddedB g]
             allEmpty = and layers
@@ -187,7 +187,7 @@ bI = Block [["IIII"]]
 dL = Block [["L  ", "LLL"]]
 dX = Block [["X ", "  "], ["X ", "XX"]]
 dT = Block [["TTT", " T "]]
-dx = Block [["X ", "  "], ["XX", " X"]]
+dx = Block [["x ", "  "], ["xx", " x"]]
 dv = Block [["v ", "vv"]]
 ds = Block [[" ss", "ss "]]
 dw = Block [["w ", "  "], ["ww", "w "]]
@@ -203,17 +203,6 @@ testBlockSet0 = [bV, bv, bi]
 testBlockSet1 = [bT, bt, bL, bI]
 
 tes = head $ bContents bZ
---x + w <= length (head g) && y + h <= length g &&
-canPlaceShapeP :: [[Char]] -> [[Char]] -> Int -> Int -> ([Char], [Char])
-canPlaceShapeP b g x y = allEmpty
-    where h = length b
-          w = length $ head b
-          ysection = take h $ drop y g
-          section = [take w (drop x line) | line <- ysection]
-          flatSection = concat section
-          flatShape = concat b
-          filteredSection = [fst a | a <- zip flatSection flatShape, snd a /= ' ']
-          allEmpty = (flatSection, flatShape)
 
 
-
+danielSet = filterRotations $ depthFirst blockSet1 grid1
